@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
+  FlatList,
   SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  FlatList
 } from "react-native";
 
 interface Todo {
@@ -19,9 +19,8 @@ export default function TodoScreen() {
   const [inputText, setInputText] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
 
-
   const handleAddPress = () => {
-    if (inputText.trim() !== '') {
+    if (inputText.trim() !== "") {
       // 新しいTODOを作成
       const newTodo = {
         id: Date.now().toString(),
@@ -32,25 +31,32 @@ export default function TodoScreen() {
       // 既存のTODOリストの先頭に新しいTODOを追加
       setTodos([newTodo, ...todos]);
       setInputText("");
-
-      console.log(newTodo.id);
-      // -> 1755464887715
-      console.log("追加されたTODO:", newTodo);
-      console.log("現在のTODOリスト:", [newTodo, ...todos]);
     }
   };
 
-  const renderTodoItem = ({ item }: { item: Todo}) => (
-    <View style={styles.todoItem}>
-      <Text style={styles.todoText}>{item.text}</Text>
-    </View>
+  const toggleTodo = (id: string) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
+
+  const renderTodoItem = ({ item }: { item: Todo }) => (
+    <TouchableOpacity
+      style={[styles.todoItem, item.completed && styles.completedTodo]}
+      onPress={() => toggleTodo(item.id)}
+    >
+      <Text style={[styles.todoText, item.completed && styles.completedText]}>
+        {item.text}
+      </Text>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>TODOアプリ</Text>
 
-      {/* デバッグ用: 現在の入力文字を表示 */}
       <Text style={styles.debugText}>入力中: {inputText}</Text>
 
       {/* 入力欄とボタン */}
@@ -59,7 +65,7 @@ export default function TodoScreen() {
           style={styles.textInput}
           placeholder="新しいタスクを入力..."
           value={inputText}
-          onChangeText={setInputText} // 文字が変わった時の処理
+          onChangeText={setInputText}
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
           <Text style={styles.addButtonText}>追加</Text>
@@ -67,7 +73,13 @@ export default function TodoScreen() {
       </View>
 
       {/* TODOリストの表示 */}
-      <FlatList data={todos} renderItem={renderTodoItem} keyExtractor={(item) => item.id} style={styles.todoList} showsVerticalScrollIndicator={false} />
+      <FlatList
+        data={todos}
+        renderItem={renderTodoItem}
+        keyExtractor={(item) => item.id}
+        style={styles.todoList}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 }
@@ -152,5 +164,14 @@ const styles = StyleSheet.create({
     fontSize: 16, // 文字サイズ
     color: "#333", // 文字色
     lineHeight: 20, // 行の高さ
+  },
+  completedTodo: {
+    backgroundColor: "#f0f0f0", // 薄いグレー背景
+    opacity: 0.7, // 少し透明に
+  },
+  // 完了済みテキストのスタイル
+  completedText: {
+    textDecorationLine: "line-through", // 取り消し線
+    color: "#888", // 薄いグレー文字
   },
 });
