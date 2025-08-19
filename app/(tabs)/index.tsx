@@ -1,5 +1,7 @@
-import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
   SafeAreaView,
   StyleSheet,
@@ -19,6 +21,33 @@ export default function TodoScreen() {
   const [inputText, setInputText] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
 
+  // データをデバイスに保存
+  const saveTodos = async (todoList: Todo[]) => {
+    try {
+      await AsyncStorage.setItem("todos", JSON.stringify(todoList));
+    } catch (error) {
+      console.error("TODOの保存に失敗：", error);
+      Alert.alert("エラー", "データの保存に失敗しました");
+    }
+  };
+
+  // データをデバイスから読み込む
+  const loadTodos = async () => {
+    try {
+      const savedTodos = await AsyncStorage.getItem("todos");
+      if (savedTodos) {
+        setTodos(JSON.parse(savedTodos));
+      }
+    } catch (error) {
+      console.error("TODOの読み込みに失敗：", error);
+      Alert.alert("エラー", "データの読み込みに失敗しました");
+    }
+  };
+
+  useEffect(() => {
+    loadTodos();
+  }, []);
+
   const handleAddPress = () => {
     if (inputText.trim() !== "") {
       // 新しいTODOを作成
@@ -29,17 +58,19 @@ export default function TodoScreen() {
       };
 
       // 既存のTODOリストの先頭に新しいTODOを追加
-      setTodos([newTodo, ...todos]);
+      const updatedTodos = [newTodo, ...todos];
+      setTodos(updatedTodos);
+      saveTodos(updatedTodos);
       setInputText("");
     }
   };
 
   const toggleTodo = (id: string) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
     );
+    setTodos(updatedTodos);
+    saveTodos(updatedTodos);
   };
 
   const renderTodoItem = ({ item }: { item: Todo }) => (
@@ -57,7 +88,9 @@ export default function TodoScreen() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>TODOアプリ</Text>
 
-      <Text style={styles.debugText}>入力中: {inputText}</Text>
+      <Text style={styles.debugText}>
+        入力中: {inputText} | TODO数: {todos.length}
+      </Text>
 
       {/* 入力欄とボタン */}
       <View style={styles.inputContainer}>
