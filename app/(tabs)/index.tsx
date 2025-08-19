@@ -18,7 +18,7 @@ interface Todo {
 }
 
 export default function TodoScreen() {
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState<number>("");
   const [todos, setTodos] = useState<Todo[]>([]);
 
   // データをデバイスに保存
