@@ -1,0 +1,30 @@
+name: CI Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-code:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: コードをチェックアウト
+      uses: actions/checkout@v4
+    
+    - name: Node.jsをセットアップ
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: 依存関係をインストール
+      run: npm ci
+    
+    - name: TypeScriptエラーチェック
+      run: npx tsc --noEmit
+    
+    - name: ESLintでコードスタイルチェック
+      run: npm run lint
